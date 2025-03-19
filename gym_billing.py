@@ -22,17 +22,17 @@ def load(filename):
         return classes
 
 
-def save(filename, list):
+def save(filename, ulist):
     if filename == "members.txt":
 
         with open("members.txt", "w") as f:
-            for i in list:
-                f.write(i + "," + ",".join(list[i]) + "\n")
+            for i in ulist:
+                f.write(i + "," + ",".join(ulist[i]) + "\n")
 
     if filename == "classes.txt":
         with open("classes.txt", "w") as f:
-            for i in list:
-                f.write(i + "," + ",".join(list[i]) + "\n")
+            for i in ulist:
+                f.write(i + "," + ",".join(ulist[i]) + "\n")
 
 
 def main():
@@ -115,59 +115,9 @@ def main():
         print("Membership number: ", mem_number)
         members[mem_number] = [first_name, last_name, contact_number, mem_type]
 
-        if save(members):
+        if save("members.txt", members):
             print("Member added successfully.")
-
-    def add_update_session():
-        sessions = [
-        ["S001", "Spinning", 900, "Monday", "Morning", "Coach Lisa"],
-        ["S002", "Spinning", 900, "Wednesday", "Evening", "Coach Mike"],
-        ["M001", "Martial Arts", 1100, "Tuesday", "Morning", "Sensei John"],
-        ["M002", "Martial Arts", 1100, "Thursday", "Evening", "Sensei Kim"]
-        ]
-        session_ID = input("Enter Session ID: ")
-        session_name = input("Enter Session Name: ")
-        session_day = input("Enter the Days the Session will be held: ")
-        session_time = input("Enter the Time: ")
-        session_cost = int(input("Enter the Cost of the Session: "))
-        instructor = input("Enter the Name of the Instructor: ")
-
-        sessions.append([session_ID, session_name, session_cost, session_day, session_time, instructor])
-        print("New session successfully added!")
-
-        session_ID = input("Enter the Session ID you want to update: ")
-        session_found = False
-
-        for session in sessions:
-            if session[0] == session_ID:
-                session_found = True
-
-                new_name = input("Enter New Session Name (or press Enter to keep the current name): ")
-                if new_name:
-                    session[1] = new_name
-
-                new_day = input("Enter New Days (or press Enter to keep the current days): ")
-                if new_day:
-                    session[3] = new_day
-
-                new_time = input("Enter New Time (or press Enter to keep the current time): ")
-                if new_time:
-                    session[4] = new_time
-
-                new_cost = input("Enter New Cost (or press Enter to keep the current cost): ")
-                if new_cost:
-                    session[2] = int(new_cost)
-
-                new_instructor = input("Enter New Instructor Name (or press Enter to keep the current instructor): ")
-                if new_instructor:
-                    session[5] = new_instructor
-
-                print("Session successfully updated!")
-                break
-
-        if not session_found:
-            print("Error: Session ID not found!")
-
+     
     def add_instruct():
         with open("members.txt", "r") as f:
             members = f.read()
@@ -409,60 +359,60 @@ def main():
         print("1. Add New Session\n2. Update Existing Session\n3. Exit")
         choice = input("Enter number: ")
         if choice == "1":
-            # Add new session
+        # Add new session
             while True:
                 session_id = input("Enter Session ID: ")
-                if len(session_id) == 5:
+                if len(session_id) == 5 and session_id[0] == 'C' and session_id[1:].isdigit():
                     break
                 else:
                     print("Invalid input. Please enter the session ID in the format C0000.")
-
+                    
             session_name = input("Enter Session Name: ")
-            session_day = input("Enter the Days the Session will be held: ")
-            session_time = input("Enter the Time: ")
+            session_day = input("Enter the Days the Session will be held: ").capitalize()
+            session_time = input("Enter the Time: ").capitalize()
             session_cost = input("Enter the Cost of the Session: ")
             instructor = input("Enter the Name of the Instructor: ")
-
+            
             # Match the format in classes.txt: [name, day, time, cost, instructor]
             sessions[session_id] = [session_name, session_day, session_time, session_cost, instructor]
-            if save("classes.txt", sessions):
+            if save("classes.txt",sessions):
                 print("New session successfully added!")
-            elif choice == "2":
-                # Update session
-                while True:
-                    session_id = input("Enter the Session ID you want to update: ")
-                    if session_id in sessions:
-                        break
-                    else:
-                        print("Invalid input. Please enter a valid session ID.")
-
-                new_name = input("Enter New Session Name (or press Enter to keep the current name): ")
-                if new_name:
-                    sessions[session_id][0] = new_name
-
-                new_day = input("Enter New Days (or press Enter to keep the current days): ")
-                if new_day:
-                    sessions[session_id][1] = new_day
-
-                new_time = input("Enter New Time (or press Enter to keep the current time): ")
-                if new_time:
-                    sessions[session_id][2] = new_time
-
-                new_cost = input("Enter New Cost (or press Enter to keep the current cost): ")
-                if new_cost:
-                    sessions[session_id][3] = new_cost
-
-                new_instructor = input("Enter New Instructor Name (or press Enter to keep the current instructor): ")
-                if new_instructor:
-                    sessions[session_id][4] = new_instructor
-
-                if save("classes.txt", sessions):
-                    print("Session successfully updated!")
-
+        elif choice == "2":
+        # Update session
+            while True:
+                session_id = input("Enter the Session ID you want to update: ")
+                if session_id in sessions:
+                    break
                 else:
-                    print("Exiting session update menu.")
-                    return
+                    print("Invalid input. Please enter a valid session ID.")
+            
+            new_name = input("Enter New Session Name (or press Enter to keep the current name): ")
+            if new_name:
+                sessions[session_id][0] = new_name
+                
+            new_day = input("Enter New Days (or press Enter to keep the current days): ")
+            if new_day:
+                sessions[session_id][1] = new_day
+                
+            new_time = input("Enter New Time (or press Enter to keep the current time): ")
+            if new_time:
+                sessions[session_id][2] = new_time
+                
+            new_cost = input("Enter New Cost (or press Enter to keep the current cost): ")
+            if new_cost:
+                sessions[session_id][3] = new_cost
+                
+            new_instructor = input("Enter New Instructor Name (or press Enter to keep the current instructor): ")
+            if new_instructor:
+                sessions[session_id][4] = new_instructor
 
+            if save("classes.txt",sessions):    
+                print("Session successfully updated!")
+            
+        else:
+            print("Exiting session update menu.")
+            return    
+        
     def display_menu():
         while True:
             print("\n")
