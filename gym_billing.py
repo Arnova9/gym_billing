@@ -35,6 +35,216 @@ def save(filename, ulist):
                 f.write(i + "," + ",".join(ulist[i]) + "\n")
 
 
+def class_registrations():
+    # Dictionary to store class information - key is class code
+    classes = {}
+    # Dictionary to store members registered for each class - key is class code
+    class_members = {}
+    # Dictionary to track total revenue for each class - key is class code
+    class_revenue = {}
+
+    # Read classes.txt file
+    try:
+        with open('classes.txt', 'r') as class_file:
+            for line in class_file:
+                parts = line.strip().split(',')
+                if len(parts) >= 3:  # Ensure we have enough fields
+                    class_code = parts[0].strip()
+                    class_name = parts[1].strip()
+                    class_cost = float(parts[2].strip())  # Cost is in the third position (index 2)
+
+                    classes[class_code] = {
+                        'name': class_name,
+                        'cost': class_cost
+                    }
+                    class_members[class_code] = []
+                    class_revenue[class_code] = 0.0
+    except FileNotFoundError:
+        print("Error: classes.txt file not found.")
+        return
+    except Exception as e:
+        print(f"Error reading classes.txt: {e}")
+        return
+
+    # Read members.txt file
+    try:
+        with open('members.txt', 'r') as members_file:
+            for line in members_file:
+                parts = line.strip().split(',')
+                if len(parts) >= 6:  # Ensure we have enough fields
+                    first_name = parts[1].strip()
+                    last_name = parts[2].strip()
+                    class_code = parts[5].strip()
+
+                    # Check if the class code exists
+                    if class_code in classes:
+                        full_name = f"{first_name} {last_name}"
+                        class_members[class_code].append(full_name)
+                        class_revenue[class_code] += classes[class_code]['cost']
+    except FileNotFoundError:
+        print("Error: members.txt file not found.")
+        return
+    except Exception as e:
+        print(f"Error reading members.txt: {e}")
+        return
+
+    # Generate and print the report
+    print("\n=== CLASS REGISTRATION AND REVENUE REPORT ===\n")
+
+    for class_code in sorted(classes.keys()):
+        class_name = classes[class_code]['name']
+        cost = classes[class_code]['cost']
+        members = class_members[class_code]
+        total_revenue = class_revenue[class_code]
+
+        print(f"Class: {class_name} (Code: {class_code})")
+        print(f"Cost per Member: ${cost:.2f}")
+        print(f"Number of Members: {len(members)}")
+        print(f"Total Revenue: ${total_revenue:.2f}")
+        print("\nRegistered Members:")
+
+        if members:
+            for member in sorted(members):
+                print(f"- {member}")
+        else:
+            print("- No members registered")
+
+        print("\n" + "-" * 50 + "\n")
+
+    # Print summary of all classes
+    total_all_revenue = sum(class_revenue.values())
+    total_all_members = sum(len(members) for members in class_members.values())
+
+    print("=== SUMMARY ===")
+    print(f"Total Number of Classes: {len(classes)}")
+    print(f"Total Number of Registrations: {total_all_members}")
+    print(f"Total Revenue: ${total_all_revenue:.2f}")
+
+
+def generate_client_report():
+    membership_fees = {
+        "Platinum": 10000,
+        "Diamond": 7500,
+        "Gold": 4000,
+        "Standard": 2000
+    }
+
+    # Dictionary to store class information - key is class ID
+    classes = {}
+
+    # Dictionary to store client information - key is member ID
+    clients = {}
+
+    try:
+        with open('classes.txt', 'r') as class_file:
+            for line in class_file:
+                parts = line.strip().split(',')
+                if len(parts) >= 3:
+                    class_id = parts[0].strip()
+                    class_name = parts[1].strip()
+                    class_cost = float(parts[2].strip())
+
+                    classes[class_id] = {
+                        'name': class_name,
+                        'cost': class_cost
+                    }
+    except FileNotFoundError:
+        print("Error: classes.txt file not found.")
+        return
+    except Exception as e:
+        print(f"Error reading classes.txt: {e}")
+        return
+
+    try:
+        with open('members.txt', 'r') as members_file:
+            for line in members_file:
+                parts = line.strip().split(',')
+                if len(parts) >= 6:
+                    member_id = parts[0].strip()
+                    first_name = parts[1].strip()
+                    last_name = parts[2].strip()
+                    membership_type = parts[4].strip()
+                    class_id = parts[5].strip()
+
+                    # If this is the first time we see this member, initialize their record
+                    if member_id not in clients:
+                        clients[member_id] = {
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'membership_type': membership_type,
+                            'classes': [],
+                            'total_fee': 0.0
+                        }
+
+                    # Add class to member's record if it exists
+                    if class_id in classes:
+                        clients[member_id]['classes'].append({
+                            'id': class_id,
+                            'name': classes[class_id]['name'],
+                            'cost': classes[class_id]['cost']
+                        })
+    except FileNotFoundError:
+        print("Error: members.txt file not found.")
+        return
+    except Exception as e:
+        print(f"Error reading members.txt: {e}")
+        return
+
+    # Calculate total monthly fee for each client
+    for member_id, client_info in clients.items():
+        # Start with the base membership fee
+        membership_type = client_info['membership_type']
+        if membership_type in membership_fees:
+            base_fee = membership_fees[membership_type]
+        else:
+            base_fee = 0.0
+            print(f"Warning: Unknown membership type '{membership_type}' for client {member_id}")
+
+        # Add the cost of all classes
+        class_fees = sum(class_info['cost'] for class_info in client_info['classes'])
+
+        # Calculate total fee
+        total_fee = base_fee + class_fees
+        clients[member_id]['total_fee'] = total_fee
+
+    # Generate and print the report
+    print("\n=== GYM CLIENT MONTHLY FEE REPORT ===\n")
+
+    for member_id in sorted(clients.keys()):
+        client = clients[member_id]
+
+        print(f"Client ID: {member_id}")
+        print(f"Name: {client['first_name']} {client['last_name']}")
+        print(f"Membership Type: {client['membership_type']}")
+
+        if client['membership_type'] in membership_fees:
+            print(f"Base Membership Fee: ${membership_fees[client['membership_type']]:.2f}")
+        else:
+            print(f"Base Membership Fee: Unknown (membership type not found)")
+
+        print("\nRegistered Classes:")
+        if client['classes']:
+            class_total = 0.0
+            for class_info in client['classes']:
+                print(f"- {class_info['name']} (ID: {class_info['id']}) - ${class_info['cost']:.2f}")
+                class_total += class_info['cost']
+            print(f"\nTotal Class Fees: ${class_total:.2f}")
+        else:
+            print("- No additional classes registered")
+            print("\nTotal Class Fees: $0.00")
+
+        print(f"\nTOTAL MONTHLY FEE: ${client['total_fee']:.2f}")
+        print("\n" + "-" * 50 + "\n")
+
+    # Print summary
+    total_clients = len(clients)
+    total_revenue = sum(client['total_fee'] for client in clients.values())
+
+    print("=== SUMMARY ===")
+    print(f"Total Number of Clients: {total_clients}")
+    print(f"Total Monthly Revenue: ${total_revenue:.2f}")
+
+
 def main():
     def checkin():
         members = load("members.txt")
@@ -214,24 +424,24 @@ def main():
             if len(member_data) == 5:
                 members_list.append(member_data)
 
-            #Organize data by membership type
+            # Organize data by membership type
             membership_data = {}
 
             for member in members_list:
                 member_id, first_name, last_name, monthly_fee, membership_type = member
 
-                #Look up the monthly fee for the membership type
+                # Look up the monthly fee for the membership type
                 if membership_type in membership_fees:
                     monthly_fee = membership_fees[membership_type]
 
-                #Initialize the membership type if it doesn't exist
+                # Initialize the membership type if it doesn't exist
                 if membership_type not in membership_data:
                     membership_data[membership_type] = {
                         "members": [],
                         "total_fees": 0
                     }
 
-                #Adds a member to the membership type group
+                # Adds a member to the membership type group
                 membership_data[membership_type]["members"].append((first_name, last_name))
                 membership_data[membership_type]["total_fees"] += monthly_fee
 
@@ -253,89 +463,10 @@ def main():
             print(f"Total Monthly Fees: ${total_fees:.2f}")
 
         elif choice == '4':
-            try:
-                with open('classes.txt', 'r') as class_file:
-                    for line in class_file:
-                        parts = line.strip().split(',')
-                        if len(parts) >= 3:  # Ensure we have enough fields
-                            class_code = parts[0].strip()
-                            class_name = parts[1].strip()
-                            class_cost = float(parts[2].strip())  # Cost is in the third position (index 2)
-
-                            classes[class_code] = {
-                                'name': class_name,
-                                'cost': class_cost
-                            }
-                            class_members[class_code] = []
-                            class_revenue[class_code] = 0.0
-            except FileNotFoundError:
-                print("Error: classes.txt file not found.")
-                return
-            except Exception as e:
-                print(f"Error reading classes.txt: {e}")
-                return
-
-            # Read members.txt file
-            try:
-                with open('members.txt', 'r') as members_file:
-                    for line in members_file:
-                        parts = line.strip().split(',')
-                        if len(parts) >= 6:  # Ensure we have enough fields
-                            first_name = parts[1].strip()
-                            last_name = parts[2].strip()
-                            class_code = parts[5].strip()
-
-                            # Check if the class code exists
-                            if class_code in classes:
-                                full_name = f"{first_name} {last_name}"
-                                class_members[class_code].append(full_name)
-                                class_revenue[class_code] += classes[class_code]['cost']
-            except FileNotFoundError:
-                print("Error: members.txt file not found.")
-                return
-            except Exception as e:
-                print(f"Error reading members.txt: {e}")
-                return
-
-            # Generate and print the report
-            print("CLASS REGISTRATION AND REVENUE REPORT\n")
-
-            for class_code in sorted(classes.keys()):
-                class_name = classes[class_code]['name']
-                cost = classes[class_code]['cost']
-                members = class_members[class_code]
-                total_revenue = class_revenue[class_code]
-
-                print(f"Class: {class_name} (Code: {class_code})")
-                print(f"Cost per Member: ${cost:.2f}")
-                print(f"Number of Members: {len(members)}")
-                print(f"Total Revenue: ${total_revenue:.2f}")
-                print("\nRegistered Members:")
-
-                if members:
-                    for member in sorted(members):
-                        print(f"- {member}")
-                else:
-                    print("- No members registered")
-
-                print("\n" + "-" * 50 + "\n")
-
-            # Print summary of all classes
-            total_all_revenue = sum(class_revenue.values())
-            total_all_members = sum(len(members) for members in class_members.values())
-
-            print("=== SUMMARY ===")
-            print(f"Total Number of Classes: {len(classes)}")
-            print(f"Total Number of Registrations: {total_all_members}")
-            print(f"Total Revenue: ${total_all_revenue:.2f}")
+            class_registrations()
 
         elif choice == '5':
-            print("Client Reports:")
-            for gym_id, member in members_list.items():
-                total_fee = member["membership_fee"] + len(member["class_list"]) * 10
-                print(f"Gym ID: {gym_id}, Name: {member['first_name']} {member['last_name']}")
-                print(f"Classes Registered: {member['class_list']}, Total Monthly Fee: {total_fee}")
-                print("---------------------------")
+            generate_client_report()
         elif choice == '6':
             display_menu()
         else:
