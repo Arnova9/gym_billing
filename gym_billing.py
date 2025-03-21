@@ -6,19 +6,27 @@ from datetime import datetime
 
 def load(filename):
     if filename == "members.txt":
-        with open(filename, "r") as f:
-            members = f.read()
-            members = members.split("\n")
-            members = [i.split(",") for i in members]
-            members = {i[0]: i[1:] for i in members}
+        try:
+            with open(filename, "r") as f:
+                members = f.read()
+                members = members.split("\n")
+                members = [i.split(",") for i in members]
+                members = {i[0]: i[1:] for i in members}
+        except FileNotFoundError:
+            with open(filename, "w") as f:
+                members = {}
         return members
 
     if filename == "classes.txt":
-        with open(filename, "r") as f:
-            classes = f.read()
-            classes = classes.split("\n")
-            classes = [i.split(",") for i in classes]
-            classes = {i[0]: i[1:] for i in classes}
+        try: 
+            with open(filename, "r") as f:
+                classes = f.read()
+                classes = classes.split("\n")
+                classes = [i.split(",") for i in classes]
+                classes = {i[0]: i[1:] for i in classes}
+        except FileNotFoundError:
+            with open(filename, "w") as f:
+                classes = {}
         return classes
 
 
