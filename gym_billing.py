@@ -43,7 +43,7 @@ def class_registrations():
     # Dictionary to track total revenue for each class - key is class code
     class_revenue = {}
 
-    # Read classes.txt file
+    # Read classes.txt  file
     try:
         with open('classes.txt', 'r') as class_file:
             for line in class_file:
