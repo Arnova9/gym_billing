@@ -602,63 +602,6 @@ def display_menu():
             exit_program()
         else:
             print("Invalid option! Please try again.")
-def checkin():
-    members = load("members.txt")
-    classes = load("classes.txt")
-    while True:
-        membership_id = input("Enter your valid membership number: ").strip()
-        if membership_id in members:
-            break
-        else:
-            print("Invalid Membership ID. Please enter a valid membership number.")
-    current_date = datetime.now()
-
-    print("\nAvailable Classes for Registration:")
-    for cls, names in classes.items():
-        if names:
-            print("-", cls, names[0])
-        else: 
-            print("")
-
-    selected_class = input("\nEnter the id of the class you want to register for: ").strip()
-
-    while True:
-        if selected_class in classes:
-            break
-        else:
-            print("Invalid class selection. Please choose a valid class.")
-
-    # Step 4: Update the member's record with the selected class
-    members[membership_id].append(selected_class)
-
-    # Save the updated members list back to the file
-    save("members.txt", members)
-
-    print("Registration Successful!")
-    print(f"Membership ID: {membership_id}")
-    print(f"Class ID: {selected_class}")
-    print(f"Class Registered: {classes.get(selected_class)[0]}")
-    print(f"Time Registered: {current_date}")
-
-def login():
-    attempts = 3
-    stored_username = "Admin"
-    stored_password = "Admin12!"
-
-    while attempts > 0:
-        username = input("Enter your username: ")
-        password = input("Enter your password: ")
-
-        if username == stored_username and password == stored_password:
-            print("Login Successful!\n")
-            return True
-        else:
-            attempts -= 1
-            print(f"Login failed! {attempts} attempt(s) left.")
-
-    print("Login failed! System shutting down.")
-    return False
-
 def add_memb():
     members = load("members.txt")
     # Add a new member to the gym
@@ -688,11 +631,7 @@ def add_memb():
         print("Member added successfully.")
     
 def add_instruct():
-    with open("members.txt", "r") as f:
-        members = f.read()
-        members = members.split("\n")
-        members = [i.split(",") for i in members]
-        members = {i[0]: i[1:] for i in members}
+    members = load("members.txt")
     first_name = input("Enter first name: ")
     last_name = input("Enter last name: ")
     while True:
@@ -720,9 +659,7 @@ def add_instruct():
             break
     print("Instructor identification number: ", mem_number)
     members[mem_number] = [first_name, last_name, contact_number, trn, dob]
-    with open("members.txt", "w") as f:
-        for i in members:
-            f.write(i + "," + ",".join(members[i]) + "\n")
+    save("members.txt", members)
     print("Instructor added successfully.")
 
 def print_report():
