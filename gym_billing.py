@@ -48,10 +48,15 @@ def class_registrations():
         with open('classes.txt', 'r') as class_file:
             for line in class_file:
                 parts = line.strip().split(',')
-                if len(parts) >= 3:  # Ensure we have enough fields
+                if len(parts) >= 5:  # Ensure we have enough fields
                     class_code = parts[0].strip()
                     class_name = parts[1].strip()
-                    class_cost = float(parts[2].strip())  # Cost is in the third position (index 2)
+                    # Cost is now in the fifth position (index 4)
+                    try:
+                        class_cost = float(parts[4].strip())
+                    except ValueError:
+                        print(f"Warning: Invalid cost value for class {class_code}. Using 0.0")
+                        class_cost = 0.0
 
                     classes[class_code] = {
                         'name': class_name,
@@ -71,16 +76,21 @@ def class_registrations():
         with open('members.txt', 'r') as members_file:
             for line in members_file:
                 parts = line.strip().split(',')
-                if len(parts) >= 6:  # Ensure we have enough fields
+                if len(parts) >= 6 and parts[0].startswith('M'):  # Only process regular members
+                    member_id = parts[0].strip()
                     first_name = parts[1].strip()
                     last_name = parts[2].strip()
-                    class_code = parts[5].strip()
-
-                    # Check if the class code exists
-                    if class_code in classes:
-                        full_name = f"{first_name} {last_name}"
-                        class_members[class_code].append(full_name)
-                        class_revenue[class_code] += classes[class_code]['cost']
+                    
+                    # Check if there are registered classes (they would be after index 4)
+                    registered_classes = parts[5:] if len(parts) > 5 else []
+                    
+                    for class_code in registered_classes:
+                        class_code = class_code.strip()
+                        # Check if the class code exists
+                        if class_code in classes:
+                            full_name = f"{first_name} {last_name}"
+                            class_members[class_code].append(full_name)
+                            class_revenue[class_code] += classes[class_code]['cost']
     except FileNotFoundError:
         print("Error: members.txt file not found.")
         return
@@ -139,10 +149,15 @@ def generate_client_report():
         with open('classes.txt', 'r') as class_file:
             for line in class_file:
                 parts = line.strip().split(',')
-                if len(parts) >= 3:
+                if len(parts) >= 5:
                     class_id = parts[0].strip()
                     class_name = parts[1].strip()
-                    class_cost = float(parts[2].strip())
+                    # Cost is now in the fifth position (index 4)
+                    try:
+                        class_cost = float(parts[4].strip())
+                    except ValueError:
+                        print(f"Warning: Invalid cost value for class {class_id}. Using 0.0")
+                        class_cost = 0.0
 
                     classes[class_id] = {
                         'name': class_name,
@@ -159,30 +174,33 @@ def generate_client_report():
         with open('members.txt', 'r') as members_file:
             for line in members_file:
                 parts = line.strip().split(',')
-                if len(parts) >= 6:
+                if len(parts) >= 5 and parts[0].startswith('M'):  # Only process regular members
                     member_id = parts[0].strip()
                     first_name = parts[1].strip()
                     last_name = parts[2].strip()
                     membership_type = parts[4].strip()
-                    class_id = parts[5].strip()
+                    
+                    # Get registered classes (if any) - they would be after index 4
+                    registered_classes = parts[5:] if len(parts) > 5 else []
 
-                    # If this is the first time we see this member, initialize their record
-                    if member_id not in clients:
-                        clients[member_id] = {
-                            'first_name': first_name,
-                            'last_name': last_name,
-                            'membership_type': membership_type,
-                            'classes': [],
-                            'total_fee': 0.0
-                        }
-
-                    # Add class to member's record if it exists
-                    if class_id in classes:
-                        clients[member_id]['classes'].append({
-                            'id': class_id,
-                            'name': classes[class_id]['name'],
-                            'cost': classes[class_id]['cost']
-                        })
+                    # Initialize member record
+                    clients[member_id] = {
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'membership_type': membership_type,
+                        'classes': [],
+                        'total_fee': 0.0
+                    }
+                    
+                    # Add classes to member's record
+                    for class_id in registered_classes:
+                        class_id = class_id.strip()
+                        if class_id in classes:
+                            clients[member_id]['classes'].append({
+                                'id': class_id,
+                                'name': classes[class_id]['name'],
+                                'cost': classes[class_id]['cost']
+                            })
     except FileNotFoundError:
         print("Error: members.txt file not found.")
         return
@@ -244,7 +262,6 @@ def generate_client_report():
     print(f"Total Number of Clients: {total_clients}")
     print(f"Total Monthly Revenue: ${total_revenue:.2f}")
 
-
 def main():
     def checkin():
         members = load("members.txt")
@@ -259,7 +276,10 @@ def main():
 
         print("\nAvailable Classes for Registration:")
         for cls, names in classes.items():
-            print("-", cls, names[0])
+            if names:
+                print("-", cls, names[0])
+            else: 
+                print("")
 
         selected_class = input("\nEnter the id of the class you want to register for: ").strip()
 
@@ -392,13 +412,6 @@ def main():
             "Standard": 2000
         }
 
-        # Dictionary to store class information - key is class code
-        classes = {}
-        # Dictionary to store members registered for each class - key is class code
-        class_members = {}
-        # Dictionary to track total revenue for each class - key is class code
-        class_revenue = {}
-
         print("REPORTS")
         print("1. Total Members")
         print("2. Class Schedules")
@@ -410,68 +423,85 @@ def main():
         choice = input("Enter number: ")
 
         if choice == '1':
-            print(f"Total Members: {len(members_list)}\n")
+            # Filter out instructors (IDs starting with 'I')
+            regular_members = [member for member in members_list if member[0].startswith('M')]
+            
+            print(f"Total Members: {len(regular_members)}\n")
             print("List of Members:")
-            for member in members_list:
+            for member in regular_members:
                 if len(member) >= 3:
-                    _, first_name, last_name = member[:3]
-                    print(first_name, last_name)
+                    member_id, first_name, last_name = member[:3]
+                    print(f"{member_id}: {first_name} {last_name}")
+        
         elif choice == '2':
-            print("Class Schedules:\n")  # Initial header with a blank line
+            print("Class Schedules:\n")
             for class_item in class_summary:
-                print(class_item, end="\n")
+                class_data = class_item.strip().split(",")
+                if len(class_data) >= 5:
+                    class_id, name, day, time, cost, instructor = class_data[0], class_data[1], class_data[2], class_data[3], class_data[4], class_data[5] if len(class_data) > 5 else "Not assigned"
+                    print(f"ID: {class_id} - {name}")
+                    print(f"  Day: {day}")
+                    print(f"  Time: {time}")
+                    print(f"  Cost: ${cost}")
+                    print(f"  Instructor: {instructor}")
+                    print()
+        
         elif choice == '3':
-            if len(member_data) == 5:
-                members_list.append(member_data)
-
             # Organize data by membership type
             membership_data = {}
-
-            for member in members_list:
-                member_id, first_name, last_name, monthly_fee, membership_type = member
-
-                # Look up the monthly fee for the membership type
-                if membership_type in membership_fees:
-                    monthly_fee = membership_fees[membership_type]
-
-                # Initialize the membership type if it doesn't exist
-                if membership_type not in membership_data:
-                    membership_data[membership_type] = {
-                        "members": [],
-                        "total_fees": 0
-                    }
-
-                # Adds a member to the membership type group
-                membership_data[membership_type]["members"].append((first_name, last_name))
-                membership_data[membership_type]["total_fees"] += monthly_fee
-
-            print("List of Members with Membership Types:")
+            
+            # Filter for regular members (not instructors)
+            regular_members = [member for member in members_list if member[0].startswith('M')]
+            
+            for member in regular_members:
+                if len(member) >= 5:  # Ensure we have enough fields
+                    member_id, first_name, last_name = member[0], member[1], member[2]
+                    membership_type = member[4]  # Membership type is at index 4
+                    
+                    # Look up the monthly fee for the membership type
+                    monthly_fee = membership_fees.get(membership_type, 0)
+                    
+                    # Initialize the membership type if it doesn't exist
+                    if membership_type not in membership_data:
+                        membership_data[membership_type] = {
+                            "members": [],
+                            "total_fees": 0
+                        }
+                    
+                    # Add a member to the membership type group
+                    membership_data[membership_type]["members"].append((first_name, last_name))
+                    membership_data[membership_type]["total_fees"] += monthly_fee
+            
+            print("\nMembership Summary Report:")
             for membership_type, data in membership_data.items():
                 print(f"\nMembership Type: {membership_type}")
+                print(f"Monthly Fee: ${membership_fees.get(membership_type, 0):.2f}")
                 print("Members:")
                 for first_name, last_name in data["members"]:
                     print(f"- {first_name} {last_name}")
                 print(f"Total Members: {len(data['members'])}")
                 print(f"Total Monthly Fees: ${data['total_fees']:.2f}")
-
+            
             # Display overall totals
             total_members = sum(len(data["members"]) for data in membership_data.values())
             total_fees = sum(data["total_fees"] for data in membership_data.values())
-
+            
             print("\nOverall Totals:")
             print(f"Total Members: {total_members}")
             print(f"Total Monthly Fees: ${total_fees:.2f}")
-
+        
         elif choice == '4':
             class_registrations()
-
+        
         elif choice == '5':
             generate_client_report()
+        
         elif choice == '6':
             display_menu()
+        
         else:
             print("Invalid option! Please try again.")
-
+            
     def exit_program():
         while True:
             user_choice = input("Are you sure you want to exit? (Y/N): ").strip().lower()

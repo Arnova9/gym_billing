@@ -1,1 +1,2 @@
 C9802,Walk,Wednesday,Morning,1000,Nate
+C4352,Synchronized Swimming,Friday,Morning,1500,Latto
