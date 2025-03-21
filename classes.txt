@@ -1,4 +1,2 @@
-S001, Spinning, 900, Monday, Morning, Coach Lisa
-S002, Spinning, 900, Wednesday, Evening, Coach Mike,
-M001, Martial Arts, 1100, Tuesday, Morning, Sensei John,
-M002, Martial Arts, 1100, Thursday, Evening, Sensei Kim
+C9802,Walk,Wednesday,Morning,1000,Nate
+C4352,Synchronized Swimming,Friday,Morning,1500,Latto
