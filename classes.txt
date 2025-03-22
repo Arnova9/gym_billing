@@ -1,4 +1,2 @@
-C9802,Walk,Wednesday,Morning,1000,Nate
-C4352,Synchronized Swimming,Friday,Morning,1500,Latto
-,
-C2392,Mixed Martial Arts,Monday,Morning,1750,Lee
+C0001,Spinning,Tuesday,Evening,900,Tyreek
+C0002,Martial Arts,Monday,Morning,1100,Lee
