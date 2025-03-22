@@ -1,4 +1,9 @@
-# START
+'''
+Gym Billing System
+Authors: Antonio Rolong, Keno Williams, Zoe-Ann Turner
+Date: 2025-03-21
+Description: A program that allows gym members to check-in, add new members, add/update sessions, add facilitators/instructors, print reports, and exit the program.
+'''
 import random
 import datetime
 from datetime import datetime
